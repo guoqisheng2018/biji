@@ -8,11 +8,11 @@
 
 ## 1.创建仓库
 
-![](C:\Users\Administrator\Desktop\截屏\github\1589008351(1).png)
+![](GitHub.assets/1589008351(1).png)
 
 仓库主页
 
-![](C:\Users\Administrator\Desktop\截屏\github\1589009090(1).png)
+![](GitHub.assets/1589009090(1).png)
 
 ## 2.下载git
 
@@ -58,7 +58,7 @@ git commit -m'提交描述'
 
 从远程仓库克隆到本地仓库
 
-![](C:\Users\Administrator\Desktop\截屏\github\1589035895(1).png)
+![](GitHub.assets/1589035895(1).png)
 
 ```
 git clone 'https://github.com/guoqisheng2018/web-spring-boot.git'

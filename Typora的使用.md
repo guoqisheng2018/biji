@@ -18,11 +18,17 @@ Ctrl+t
 
 ### 1.2图片
 
+先点开文件--设置偏好
+
+![](Typora的使用.assets/1589078885(1).png)
+
 Ctrl+Shift+i
 
-例如![](C:\Users\Administrator\Desktop\截屏\443934-20181012170211920-1988294604.png)
+其他快捷键
 
-![](C:\Users\Administrator\Desktop\截屏\1588993407(1).png)
+![](Typora的使用.assets/443934-20181012170211920-1988294604.png)
+
+![](Typora的使用.assets/1588993407(1).png)
 
 ### 1.3设置目录
 
@@ -30,13 +36,13 @@ Ctrl+Shift+i
 
 在选择的目录旁使用Ctrl+1，Ctrl+2，Ctrl+3，Ctrl+4，Ctrl+5，Ctrl+6依次建立一级到六级目录
 
-![](C:\Users\Administrator\Desktop\截屏\1588996327(1).png)
+![](Typora的使用.assets/1588996327(1).png)
 
 ### 1.4贴代码
 
 使用```+代码语种（使用英文模式添加j键盘1旁）
 
-![](C:\Users\Administrator\Desktop\截屏\1588993090(1).png)
+![](Typora的使用.assets/1588993090(1).png)
 
 例如
 
@@ -61,7 +67,7 @@ Ctrl+Shift+i
 
 以下情况
 
-![](C:\Users\Administrator\Desktop\截屏\1588995946(1).png)
+![](Typora的使用.assets/1588995946(1).png)
 
 可以按Insert变成正常的修改输入
 
@@ -75,7 +81,7 @@ Ctrl+Shift+i
 
 linux输入命令
 
-![](C:\Users\Administrator\Desktop\截屏\1588996249(1).png)
+![](Typora的使用.assets/1588996249(1).png)
 
 
 
