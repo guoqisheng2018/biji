@@ -8,6 +8,35 @@
 
 保存主配置类->判断当前是否是一个web'应用->从类路径下找到META-INF/spring.factories配置的所有ApplicationContextInitializer然后保存起来->从类路径下找到META-INF/spring.factories配置的所有ApplicationListener ->从多个主配置类中找到有main方法的主配置类
 
+使用以下代码创建SpringApplication
+
+```java
+public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
+        this.sources = new LinkedHashSet();
+        this.bannerMode = Mode.CONSOLE;
+        this.logStartupInfo = true;
+        this.addCommandLineProperties = true;
+        this.addConversionService = true;
+        this.headless = true;
+        this.registerShutdownHook = true;
+        this.additionalProfiles = new HashSet();
+        this.isCustomEnvironment = false;
+        this.lazyInitialization = false;
+        this.resourceLoader = resourceLoader;
+        Assert.notNull(primarySources, "PrimarySources must not be null");
+        this.primarySources = new LinkedHashSet(Arrays.asList(primarySources));
+        this.webApplicationType = WebApplicationType.deduceFromClasspath();
+  //从图中方法的类路径下找到配置的所有ApplicationInitalizer然后保存起来
+        this.setInitializers(this.getSpringFactoriesInstances(ApplicationContextInitializer.class));
+  //从图中方法的类路径下找到配置的所有ApplicationListener然后保存起来
+        this.setListeners(this.getSpringFactoriesInstances(ApplicationListener.class));
+  //从new RuntimeException()).getStackTrace()获得的结果值中找有main方法的主配置类，方法匹配结果的getMethodName()是否为main
+        this.mainApplicationClass = this.deduceMainApplicationClass();
+    }
+```
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/WeChat52126d65f1ff522648cde01f9816489d.png)
+
 2运行run方法
 
 ## jpa
