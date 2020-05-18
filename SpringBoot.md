@@ -39,6 +39,62 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 
 2运行run方法
 
+```java
+public ConfigurableApplicationContext run(String... args) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        ConfigurableApplicationContext context = null;
+        Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList();
+        this.configureHeadlessProperty();
+  //获取SpringApplicationRunListeners；从类路径下获取
+        SpringApplicationRunListeners listeners = this.getRunListeners(args);
+  //回调所有的获取获取SpringApplicationRunListener.starting()方法‘
+        listeners.starting();
+
+        Collection exceptionReporters;
+        try {
+            ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+          //准备环境
+            ConfigurableEnvironment environment = this.prepare完成后，用 listeners.environmentPrepared((ConfigurableEnvironment)environment);nvironment(listeners, applicationArguments);
+          //创建环境完成后，回调listeners.environmentPrepared((ConfigurableEnvironment)environment);表示环境准备完成
+            this.configureIgnoreBeanInfo(environment);
+            Banner printedBanner = this.printBanner(environment);
+          //创建ApplicationContext；决定创建是什么ioc
+            context = this.createApplicationContext();
+            exceptionReporters = this.getSpringFactoriesInstances(SpringBootExceptionReporter.class, new Class[]{ConfigurableApplicationContext.class}, context);
+          //准备上下文；将environment保存到ioc中；而且applyInitializers()回调之前保存的所有的ApplicationContextInitializer的initializer方法；回调所有的springApplicationRunListener的contextPrepared的方法
+          //prepareContext完全运行完成后回调所有的SpringApplicationRunListeners的contextLoaded()方法
+            this.prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+          //刷新容器；ioc容器初始化
+          //扫描，创建，加载所有组件的地方
+            this.refreshContext(context);
+            this.afterRefresh(context, applicationArguments);
+            stopWatch.stop();
+            if (this.logStartupInfo) {
+                (new StartupInfoLogger(this.mainApplicationClass)).logStarted(this.getApplicationLog(), stopWatch);
+            }
+
+            listeners.started(context);
+          //从ioc容器中获取所有的ApplicationRunner和CommandLineRunner进行回调
+            this.callRunners(context, applicationArguments);
+        } catch (Throwable var10) {
+            this.handleRunFailure(context, var10, exceptionReporters, listeners);
+            throw new IllegalStateException(var10);
+        }
+
+        try {
+            listeners.running(context);
+          //整个springboot容器应用启动完成以后返回启动的ioc容器
+            return context;
+        } catch (Throwable var9) {
+            this.handleRunFailure(context, var9, exceptionReporters, (SpringApplicationRunListeners)null);
+            throw new IllegalStateException(var9);
+        }
+    }
+```
+
+3事件监听机制
+
 ## jpa
 
 先在pom文件中引入jpa
