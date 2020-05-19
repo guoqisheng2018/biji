@@ -151,3 +151,223 @@ public class User {
 ```
 
 编写一个Dao借口来操作
+
+## 自定义starter
+
+starter：
+
+1这个场景需要使用到的依赖是什么
+
+2如何编写自动配置
+
+```java
+@Configuartion//指定这个类是一个配置类
+@ConditionalOnxxx//在指定条件成立的情况下自动配置类生效
+@AutoConfigureAfter//指定自动配置类的顺序
+@Bean//给容器中添加组件
+@ConfigurationPropertie//结合相关xxxProperties类来绑定相关的配置
+@EnableConfigurationProperties//让xxxProperties生效加入到容器中
+//自动配置类要能加载将需要启动就加载的自动配置类，配置在META-INF/Spring.factories
+
+```
+
+3模式
+
+启动器只用来做依赖导入；
+
+专门来写一个自动配置模块；
+
+启动器依赖自动配置；别人只需要引入启动器（starter）
+
+命名规范
+
+官方命名空间
+
+前缀：spring-boot-starter-
+
+模式：spring-boot-starter-模块名
+
+举例：spring-boot-starter-web
+
+自定义命名空间
+
+后缀：-spring-boot-starter
+
+模式：模块名-spring-boot-starter
+
+举例：mybatis-spring-boot-starter
+
+### 创建starter步骤
+
+1先创建一个空的工程
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/截屏2020-05-19 上午9.49.42.png)
+
+2添加模块，先添加maven模块
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/截屏2020-05-19 上午9.50.42.png)
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/截屏2020-05-19 上午9.53.25.png)
+
+3在添加一个Springboot初始器
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/截屏2020-05-19 上午10.00.21.png)
+
+4在starter中引入自动配置模块
+
+```java
+<dependencies>
+        <dependency>
+            <groupId>com.luoqingshang.starter</groupId>
+            <artifactId>luoqingshang-spring-boot-starter-autoconfigurer</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+```
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/截屏2020-05-19 上午10.31.58.png)
+
+5删除自动配置模块中的配置文件，启动器，pom中的test和插件（build标签）
+
+
+
+```java
+
+```
+
+6在自动配置模块中新建xxxProperties
+
+```java
+package com.luoqingshang.starter;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "luoqingshang.hello")
+
+public class HelloProperties {
+    private String prefix;
+    private String suffix;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+}
+
+```
+
+7在自动配置模块中新建service
+
+```java
+package com.luoqingshang.starter;
+
+public class HelloService {
+
+    HelloProperties helloProperties;
+
+    public HelloProperties getHelloProperties() {
+        return helloProperties;
+    }
+
+    public void setHelloProperties(HelloProperties helloProperties) {
+        this.helloProperties = helloProperties;
+    }
+
+    public String sayHello(String name){
+        return helloProperties.getPrefix()+"-"+name+"-"+helloProperties.getSuffix();
+    }
+}
+```
+
+8在自动配置模块中新建xxxAutoConfiguration
+
+```java
+package com.luoqingshang.starter;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ConditionalOnWebApplication//web应用生效
+@EnableConfigurationProperties(HelloProperties.class)
+public class HelloServiceAutoConfiguration {
+    @Autowired
+    HelloProperties helloProperties;
+    @Bean
+    public HelloService helloService(){
+        HelloService service=new HelloService();
+        service.setHelloProperties(helloProperties);
+        return service;
+    }
+}
+```
+
+9在自动配置模块中的resources中新建META-INF及其下的spring.factories
+
+```
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.luoqingshang.starter.HelloServiceAutoConfiguration
+```
+
+10使用maven装到仓库中方便使用，先装autoConfigurer，再装starter
+
+![](/Users/guoqisheng/Desktop/笔记/biji/springBoot/截屏2020-05-19 下午12.47.43.png)
+
+### 使用starter
+
+先在pom中引入starter
+
+```xml
+<dependency>
+            <groupId>com.luoqingshang.starter</groupId>
+            <artifactId>luoqingshang-spring-boot-starter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+编写使用方法
+
+```java
+package com.example.demo01.controller;
+
+import com.luoqingshang.starter.HelloService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+    @Autowired
+    HelloService helloService;
+
+    @GetMapping("/hello")
+    public String hello(){
+       return  helloService.sayHello("章三");
+    }
+}
+
+```
+
+编写配置文件(名字和自动配置模块中的自动配置类一致)
+
+```properties
+luoqingshang.hello.prefix=PREFIX
+luoqingshang.hello.suffix=SUFFIX
+```
+
+## 缓存
+
