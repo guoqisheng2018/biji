@@ -2,6 +2,8 @@
 
 ## SpringBoot启动配置原理
 
+[spring-boot-starter集锦](https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/using-spring-boot.html#using-boot-starter)
+
 ### 启动流程
 
 1创建springApplication对象
@@ -505,6 +507,65 @@ public class MyCacheConfig {
 //属性 beforeInvocation 缓存的清除是否在方法之前执行；默认在方法执行之后执行
 ```
 
+```java
+@Caching(
+            cacheable = {
+                    @Cacheable(value ="emp",key="'getEmp'+'['+#lastName+']'")
+            },
+            put = {
+                    @CachePut(value ="emp",key="'getEmp'+'['+#result.id+']'"),
+                    @CachePut(value ="emp",key="'getEmp'+'['+#result.email+']'")
+            }
+    )
+//@Caching()定义复杂的缓存规则
+```
+
+```java
+@CacheConfig
+//抽取缓存公共的配置
+```
+
 ### 注意
 
 注解标注的目标方法必须有返回值，否则无法将结果存到缓存中（拿不到结果）
+
+## redis
+
+工具
+
+Redis Desktop Manager 
+
+[redis命令大全](http://www.redis.cn/commands.html)
+
+docker下载redis
+
+docker中国镜像加速
+
+```
+docker pull registry.docker-cn.com/library/
+在需要加速的镜像前加以上内容即可
+例如docker pull registry.docker-cn.com/library/redis
+```
+
+下载完后
+
+```
+docker -d -p 6379:6379 --name myredis + 镜像名
+```
+
+spring-boot-starter-data-redis
+
+配置redis
+
+```properties
+spring.redis.host=xxxxx
+```
+
+```java
+StringRedisTemplate//操作字符串的
+RedisTemplate//操作对象的
+```
+
+redis常见操作的五大类型
+
+String(字符串),list(列表),set(集合),hash(散列),zset(有序集合)
