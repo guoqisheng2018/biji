@@ -445,3 +445,379 @@ String collect6 = employees.stream()
 ---张三,李四,王五,赵六,田七+++
 ```
 
+## 并行流和串行流
+
+Stream()可以通过声明.parallel()和.sequential()切换并行流和串行流
+
+```java
+ Instant start=Instant.now();
+        Long sum=LongStream.rangeClosed(0,1000000000L)
+                .reduce(0,Long::sum);
+        Instant end=Instant.now();
+        System.out.println(sum+"===="+ Duration.between(start,end).toMillis());
+
+        Instant start1=Instant.now();
+        Long sum1=LongStream.rangeClosed(0,1000000000L)
+                .parallel()
+                .reduce(0,Long::sum);
+        Instant end1=Instant.now();
+        System.out.println(sum1+"===="+ Duration.between(start1,end1).toMillis());
+```
+
+结果
+
+```
+500000000500000000====336
+500000000500000000====68
+```
+
+## Optional类
+
+Optional<T>类(java.util.Optional）是一个容器类，代表一个值存在或不存在，
+原来用 null表示一个值不存在，现在Optional可以更好的表达这个概念。并且
+可以避免空指针异常。
+
+### 常用方法：
+
+Optional.of(T t)： 创建一个 Optional 实例   通过.get()方法可以拿回T对象
+Optional.empty()：创建一个空的 Optional 实例
+Optional.ofNullable(T t):若 t 不为 null,创建 Optional 实例,否则创建空实例
+isPresent()；判断是否包含值
+orElse(T t）;如果调用对象包含值，返回该值，否则返回t
+orElseGet(Supplier s）：如果调用对象包含值，返回该值，否则返回 s获取的值
+map(Function f）：如果有值对其处理，并返回处理后的Optional，否则返回 Optional.erptyO
+flatMap(Function mapper):与 map 类似，要求返回值必须是Optional
+
+```java
+package com.luoqingshang.lambda.bean;
+
+
+import java.util.Optional;
+
+public class EmployeeFactory {
+    private String name;
+    private Integer age;
+    private Double salary;
+    private Optional<Employee> employee=Optional.empty();//可能为空的对象一定要给个初始值
+
+    public EmployeeFactory(String name, Integer age, Double salary, Optional<Employee> employee) {
+        this.name = name;
+        this.age = age;
+        this.salary = salary;
+        this.employee = employee;
+    }
+
+
+    public Optional<Employee> getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Optional<Employee> employee) {
+        this.employee = employee;
+    }
+
+    @Override
+    public String toString() {
+        return "EmployeeFactory{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", salary=" + salary +
+                ", employee=" + employee +
+                '}';
+    }
+
+    public EmployeeFactory() {
+    }
+
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public Double getSalary() {
+        return salary;
+    }
+
+    public void setSalary(Double salary) {
+        this.salary = salary;
+    }
+
+
+}
+
+```
+
+
+
+注意：可能为空的对象一定要用Opertional.empty()初始化一下，否则会爆空指针异常
+
+Opertional.empty()生成出来的是个Opertional<Object>如果要点几层，先声明成为带泛型的参数
+
+## 接口中的默认方法和静态方法
+
+接口默认方法的
+
+若一个接口中定义了一个默认方法，而另外一个父类或接口中又定义了一个同名的方法时
+1.选择父类中的方法。如果一个父类提供了具体的实现，那么接口中具有相同名称和参数的默认方法会被忽略。
+
+2接口冲突。如果一个父接口提供一个默认方法，而另一个接口也提供了一个具有相同名称和参数列表的方（不管方法是否是默认方法），那么必须覆盖该方法来解决冲突
+
+```java
+package com.luoqingshang.lambda.interfaces;
+
+public class Function implements Fun1,Fun2{
+
+    @Override
+    public String getName() {//必须重写方法实现解决冲突
+        return Fun1.super.getName();
+    }
+}
+
+```
+
+静态方法
+
+可以直接使用接口类点静态方法了
+
+```java
+package com.luoqingshang.lambda.interfaces;
+
+public interface Fun1 {
+    default String getName(){
+        return "哈哈哈";
+    }
+
+    static void show(){
+        System.out.println("这是静态方法");
+    }
+}
+```
+
+## 新时间日期API
+
+相对于老版的时间是线程安全的
+
+新建时间格式可以使用常量，也可以自己指定
+
+```
+DateTimeFormatter dtf=DateTimeFormatter.ofPattern("yyyy-MM-dd");
+DateTimeFormatter dtf=DateTimeFormatter.ISO_DATE;
+
+LocalDate s=LocalDate.parse("2020-10-18",dtf);
+System.out.println(s);
+```
+
+LocalDate、LocalTime、LocalDateTime 类的实例是不可变的对象，分别表示使用 ISO-8601日历系统的日期、时间、日期和时间。它们提供了简单的日期或时间，并不包含当前的时间信息。也不包含与时区相关的信息。
+注：ISO-8601日历系统是国际标准化组织制定的现代公民的日期和时间的表示法
+
+方法除了还有plus系列还有minus系列，还有get系列
+
+```java
+LocalDateTime localDateTime=LocalDateTime.now();
+System.out.println(localDateTime);
+
+LocalDateTime ldt = LocalDateTime.of(2020, 10, 25, 13, 22, 33);
+System.out.println(ldt);
+
+LocalDateTime ldt2 = ldt.plusYears(2);
+System.out.println(ldt2);
+```
+
+运行结果
+
+```
+2020-05-30T21:53:52.156
+
+2020-10-25T13:22:33
+
+2022-10-25T13:22:33
+```
+
+ 时间戳获得（unix元年（1970-01-01 00:00:00）到现在的毫秒值）
+
+```
+Instant now = Instant.now();//默认获取UTC时区
+OffsetDateTime offsetDateTime = now.atOffset(ZoneOffset.ofHours(8));//设置偏移量为正8区
+OffsetDateTime offsetDateTime = now.atOffset(ZoneOffset.ofHours(-8));//设置偏移量为负8区
+System.out.println(offsetDateTime.toEpochSecond());//获取秒级的时间戳
+Instant instant = Instant.ofEpochMilli(1000);//相较于unix元年做时间戳相加
+System.out.println(instant);
+```
+
+计算两个时间相差的时间用Duration
+
+计算两个日期相差的时间用Period
+
+### 时间矫正器
+
+emporalAdjuster：时间校正器。有时我们可能需要获取例如：将日期调整到“下个周日”等操作。
+TemporalAdjusters：该类通过静态方法提供了大量的常用TemporalAdjuster的实现。
+
+```java
+LocalDate nextSunday = LocalDate.now().with(
+  TemporalAdjusters.next(DayOfWeek.SUNDAY)
+);
+```
+
+可以实现TemporalAdjuster接口自定义矫正器，或直接写lambda表达式
+
+### 时区操作
+
+```java
+Set<String> set=ZoneId.getAvailableZoneIds();//获取时区名
+set.forEach(System.out::println);
+```
+
+```java
+LocalDateTime ldt11=LocalDateTime.now(ZoneId.of("Europe/Monaco"));
+System.out.println(ldt11);
+ZonedDateTime ldt12 = ldt11.atZone(ZoneId.of("Europe/Monaco"));
+System.out.println(ldt12);
+```
+
+## 重复注解与类型注解
+
+注解
+
+```java
+package com.example.web.annotation;
+
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+
+
+@Repeatable(MyAnnotations.class)//要想被重复注解，必须加注解Repeatable
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotation {
+
+    String value() default "luoqingshang";
+
+}
+```
+
+重复注解的容器
+
+```java
+package com.example.web.annotation;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotations {
+
+    MyAnnotation[] value();
+}
+```
+
+```java
+package com.example.web;
+
+import com.example.web.annotation.MyAnnotation;
+import com.example.web.annotation.MyAnnotations;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Method;
+
+public class TestAnnotation {
+
+
+    @Test
+    public void test1() throws Exception{
+        Class<TestAnnotation> clazz=TestAnnotation.class;//利用java反射
+        Method m1=clazz.getMethod("show");
+        MyAnnotation[] mas = m1.getAnnotationsByType(MyAnnotation.class);
+        for(MyAnnotation myAnnotation:mas){
+            System.out.println(myAnnotation.value());
+        }
+
+    }
+
+    @MyAnnotation("hello")
+    @MyAnnotation("world")
+    public void show(){
+
+    }
+}
+```
+
+类型注解
+
+```
+package com.example.web.annotation;
+
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+
+
+@Repeatable(MyAnnotations.class)
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE,TYPE_PARAMETER})//加一个参数为TYPE_PARAMETER实现类型注解
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotation {
+
+    String value() default "luoqingshang";
+
+}
+```
+
+```java
+package com.example.web;
+
+import com.example.web.annotation.MyAnnotation;
+import com.example.web.annotation.MyAnnotations;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Method;
+
+public class TestAnnotation {
+
+
+    @Test
+    public void test1() throws Exception{
+        Class<TestAnnotation> clazz=TestAnnotation.class;//利用java反射
+        Method m1=clazz.getMethod("show");
+        MyAnnotation[] mas = m1.getAnnotationsByType(MyAnnotation.class);
+        for(MyAnnotation myAnnotation:mas){
+            System.out.println(myAnnotation.value());
+        }
+
+    }
+
+    @MyAnnotation("hello")
+    @MyAnnotation("world")
+    public void show(@MyAnnotation("abc") String str){//此处用注解注释类型
+
+    }
+}
+
+```
+
