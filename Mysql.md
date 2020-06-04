@@ -294,6 +294,101 @@ IFNULL
 select IFNULL(字段名,0) from 表名
 ```
 
+### 排序查询
+
+```
+select 字段名 from 表名 order by 字段名 desc//倒叙
+select 字段名 from 表名 order by 字段名 asc//升序
+select 字段名 from 表名 order by 字段名 //升序
+```
+
+按函数排序
+
+```
+select 字段名 from 表名 order by lenth(字段名)
+```
+
+按多个字段进行排序
+
+```
+select 字段名 from 表名 order by 字段名1 asc,字段名2 desc//先按字段名1排序，字段名1相同再按字段名2排
+```
+
+### 常见函数
+
+分类：
+
+#### 单行函数（做处理）
+
+传一个值返回一个值，如：concat、length、ifnull等
+
+字符函数
+
+length（获取参数值的字节个数）中文utf8占3字节，gbk占2字节
+
+```
+select LENGTH('你好world')
+```
+
+concat（拼接字符串）
+
+```
+select CONCAT('hello','_','world')
+```
+
+upper、lower（转大写，小写）
+
+```
+select upper('hello')
+```
+
+substr、substring（截取字符）sql中索引从1开始
+
+```
+select substr("HelloWorld",6)
+select substr("HelloWorld",索引开始值)
+select substr("HelloWorld",索引开始值,长度)
+```
+
+instr 返回子串第一次出现的索引，若没有查到返回0
+
+```
+select instr("helloworldWorld",World)
+```
+
+trim 去掉首尾空格
+
+```
+select TRIM("   world     ")
+select TRIM('a'  from  'aaaaaaWoraaaaaldaaaaaa')   //去掉两端的a
+```
+
+lpad用指定的字符左填充到指定长度（若指定长度小于本身长度，则从左开始截取指定长度的字符）
+
+rpad用指定的字符右填充到指定长度（若指定长度小于本身长度，则从左开始截取指定长度的字符）
+
+```
+select LPAD('hello',10,'*')
+```
+
+replace替换. 用后一个字符串替换前一个字符串（若有多个会一起替换掉）
+
+```
+select REPLACE("你好world","你好","Hello")
+```
+
+数字函数
+
+日期函数
+
+其他函数
+
+流程控制函数
+
+#### 分组函数（统计）
+
+传一组值返回一个值
+
 
 
 ## DML语言
