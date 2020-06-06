@@ -322,7 +322,7 @@ select 字段名 from 表名 order by 字段名1 asc,字段名2 desc//先按字�
 
 传一个值返回一个值，如：concat、length、ifnull等
 
-字符函数
+##### 字符函数
 
 length（获取参数值的字节个数）中文utf8占3字节，gbk占2字节
 
@@ -377,17 +377,205 @@ replace替换. 用后一个字符串替换前一个字符串（若有多个会�
 select REPLACE("你好world","你好","Hello")
 ```
 
-数字函数
+##### 数字函数
 
-日期函数
+round 四舍五入,默认取整
 
-其他函数
+```
+select round(1.45)
+select round(1.457,2)//小数点后保留两位
+```
 
-流程控制函数
+ceil 向上取整,返回>=该参数的最小整数
+
+```
+select ceil(1.3)
+```
+
+floor 向下取整，返回<=该参数的最大整数
+
+```
+select floor(1.2)
+```
+
+truncate 截断
+
+```
+select truncate(1.65,1)
+```
+
+mod 取模(取余)    公式等于java中的 a-a/b*b（除法会自动舍去位数，例如10/3=3）
+
+```
+select mod(10,3)
+select 10%3//这两一致
+```
+
+##### 日期函数
+
+now 返回当年系统日期+时间
+
+```
+select now()
+```
+
+curdate 返回当前系统日期，不包含时间
+
+```
+select curdate()
+```
+
+curtime 返回当前系统时间，不包含日期
+
+```
+select curtime()
+```
+
+获取指定的部分
+
+```
+select YEAR(now())//里面放日期格式
+select MONTH('1996-05-18')
+select MONTHNAME('1996-05-18')
+select DAY(字段名)
+select HOUR(now())
+select MINUTE(now())
+select SECOND(now())
+```
+
+str_to_date :将日期格式的字符串转换成指定格式的日期
+
+```
+select STR_TO_DATE('5-18-1996','%c-%d-%Y')
+```
+
+| 序号 | 格式符 | 功能                 |
+| ---- | ------ | -------------------- |
+| 1    | %Y     | 四位的年份           |
+| 2    | %y     | 两位的年份           |
+| 3    | %m     | 月份（01，02，03……） |
+| 4    | %c     | 月份（1，2，3……）    |
+| 5    | %d     | 日（01，02，03……）   |
+| 6    | %H     | 小时（24小时制）     |
+| 7    | %h     | 小时（12小时制）     |
+| 8    | %i     | 分钟（00，01，02……） |
+| 9    | %s     | 秒（01，02，03……）   |
+
+Date_format 将日期转换成字符
+
+```
+select DATE_FORMAT(now(),'%Y年%m月%d日')
+```
+
+##### 其他函数
+
+多为系统函数，不常用
+
+```
+select version()//查看mysql版本号
+select database()//查看数据库名
+select user()//查看当前用户
+```
+
+##### 流程控制函数
+
+if函数  类似于三目运算
+
+```
+select if(10>5,'大于','小于')
+```
+
+case 类似于java的switch case
+
+语法格式一
+
+case 要判断的字段或表达式
+
+when 常量1 then 要显示的值1或者语句1
+
+when 常量2 then 要显示的值2或者语句2
+
+。。。。。
+
+else 要显示的值n或者语句n
+
+end
+
+```
+SELECT salary,department_id,
+CASE department_id
+WHEN 30 THEN salary*1.1
+WHEN 40 THEN salary*1.2
+WHEN 50 THEN salary*1.3
+ELSE salary
+END as newSalary
+FROM employees
+```
+
+ 语法格式二
+
+case 
+
+when 条件1 then 要显示的值1或者语句1
+
+when 条件2 then 要显示的值2或者语句2
+
+。。。。。
+
+else 要显示的值n或者语句n
+
+end
+
+```
+SELECT salary,department_id,
+CASE 
+WHEN salary>20000 THEN 'A'
+WHEN salary>15000 THEN 'B'
+WHEN salary>10000 THEN 'C'
+ELSE 'D'
+END AS salaryLevel
+FROM employees
+```
 
 #### 分组函数（统计）
 
 传一组值返回一个值
+
+sum 求和，avg 平均值，max 最大值，min 最小值，count 计算个数
+
+```
+select sum(salary),avg(salary),max(salary),min(salary),count(salary) from employees
+```
+
+参数支持的类型只有数值型
+
+max，min，count支持所有类型，count计算的是非空的个数
+
+是否忽略null值
+
+sum和avg没有计算null值（因为null+任何值为null，avg使用sum出来的值分别除非null的个数和总个数比较，得出结论avg也不计算null值）
+
+max，min和count也是忽略计算null值的
+
+可以和distinct组合使用
+
+count的效率问题
+
+MYISAM存储引擎下，count(*)效率最高，因为内部有个计数器，直接返回了个数
+
+INNODB存储引擎下，count(*)和count(1)的效率差不多，比count(字段)要高一些
+
+group by
+
+```
+select 字段名 from 表名 where 字段名=条件 group by 字段名 order by 字段名 排序方式
+```
+
+having(分组后的筛选)
+
+```
+select COUNT(1),department_id from employees GROUP BY department_id having count(1)>2
+```
 
 
 
