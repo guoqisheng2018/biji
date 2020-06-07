@@ -162,7 +162,7 @@ select 99*100 as 结果//使用as关键字
 select 99&*100 结果//直接使用空格
 ```
 
-注意若取别名想为两个单词的建议用下划线连接
+注意⚠️若取别名想为两个单词的建议用下划线连接
 
 ```
 select 99*100 as calculation_results
@@ -314,15 +314,15 @@ select 字段名 from 表名 order by lenth(字段名)
 select 字段名 from 表名 order by 字段名1 asc,字段名2 desc//先按字段名1排序，字段名1相同再按字段名2排
 ```
 
-### 常见函数
+#### 常见函数
 
 分类：
 
-#### 单行函数（做处理）
+##### 单行函数（做处理）
 
 传一个值返回一个值，如：concat、length、ifnull等
 
-##### 字符函数
+###### 字符函数
 
 length（获取参数值的字节个数）中文utf8占3字节，gbk占2字节
 
@@ -377,7 +377,7 @@ replace替换. 用后一个字符串替换前一个字符串（若有多个会�
 select REPLACE("你好world","你好","Hello")
 ```
 
-##### 数字函数
+###### 数字函数
 
 round 四舍五入,默认取整
 
@@ -411,7 +411,7 @@ select mod(10,3)
 select 10%3//这两一致
 ```
 
-##### 日期函数
+###### 日期函数
 
 now 返回当年系统日期+时间
 
@@ -467,7 +467,7 @@ Date_format 将日期转换成字符
 select DATE_FORMAT(now(),'%Y年%m月%d日')
 ```
 
-##### 其他函数
+###### 其他函数
 
 多为系统函数，不常用
 
@@ -477,7 +477,7 @@ select database()//查看数据库名
 select user()//查看当前用户
 ```
 
-##### 流程控制函数
+###### 流程控制函数
 
 if函数  类似于三目运算
 
@@ -537,7 +537,7 @@ END AS salaryLevel
 FROM employees
 ```
 
-#### 分组函数（统计）
+##### 分组函数（统计）
 
 传一组值返回一个值
 
@@ -575,6 +575,313 @@ having(分组后的筛选)
 
 ```
 select COUNT(1),department_id from employees GROUP BY department_id having count(1)>2
+```
+
+按多个字段分组(group by后面的都有一致才算一组)
+
+```
+select avg(salary),department_id,job_id from employees group by department_id,job_id
+```
+
+### 连接查询
+
+分类：
+
+按年代分类
+
+​		sql92标准（1992年推行）仅仅支持内连接
+
+​		sql99标准【推荐】（1999年推行）支持内连接+外连接（左外和右外）+交叉连接
+
+按功能分类
+
+​		内连接
+
+​				等值连接
+
+​				非等值连接
+
+​				自连接
+
+​		外连接
+
+​				左外连接
+
+​				右外连接
+
+​				全外连接
+
+​		交叉连接
+
+注意⚠️如果为表起了别名，无法再使用原表名限定字段，因为先执行的是from，已经为表起了别名，便不再认原表名了
+
+#### sql92标准
+
+##### 等值连接
+
+多表等值连接的结果为多表的交集部分
+
+n表连接，至少需要n-1个连接条件
+
+多表的顺序无要求
+
+一般需要为表取别名，以缩短表名
+
+可以搭配所有子句使用，例如排序，分组，筛选
+
+```
+select name,boyname from beauty,boys where beauty.boyfriend_id=boys.id
+```
+
+##### 非等值连接
+
+```
+select e.salary,j.grade_level
+from employees e,job_grades j
+where e.salary between j.lowest_sal and j.highest_sal
+```
+
+##### 自连接
+
+```
+select a.last_name,b.last_name
+from employees a,employees b
+where a.manager_id=b.employee_id
+```
+
+#### sql99标准
+
+##### 等值连接
+
+语法
+
+select 查询列表
+
+from 表1 别名 连接类型【inner（内连接），left outer（左外），right outer（右外）full outer（全外），cross（全外）】
+
+join 表2 别名
+
+on 连接条件
+
+where 筛选条件
+
+```
+select last_name,department_name
+from employees a
+INNER JOIN departments b
+ON a.department_id=b.department_id//inner可以省略不写
+```
+
+注意⚠️如果要大于3张表进行连接，就再多写一遍join…… on……
+
+select 查询列表
+
+from 表1 别名 
+
+连接类型 join 表2 别名
+
+on 连接条件
+
+连接类型 join 表3 别名
+
+on 连接条件
+
+where 筛选条件
+
+##### 非等值连接
+
+```
+select e.salary,j.grade_level
+from employees e 
+join job_grades j
+on e.salary between j.lowest_sal and j.highest_sal
+```
+
+##### 自连接
+
+```
+select a.last_name,b.last_name
+from employees a 
+join employees b
+on a.manager_id=b.employee_id
+```
+
+##### 外连接
+
+特点：
+1、外连接的查询结果为主表中的所有记录
+		如果从表中有和它匹配的，则显示匹配的值
+		如果从表中没有和它匹配的，则显示null
+		外连接查询结果=内连接结果+主表中有而从表没有的记录
+2、左外连接，left join左边的是主表
+右外连接，right join右边的是主表
+3、左外和右外交换两个表的顺序，可以实现同样的效果
+
+```
+select NAME
+FROM beauty a left JOIN boys b
+on a.boyfriend_id= b.id
+where b.id is null 
+```
+
+##### 交叉连接
+
+等于笛卡尔积
+
+```
+select b.*,bo.*
+from beauty b
+cross join boys bo
+```
+
+### 子查询
+
+出现在其他语句中select语句，称为子查询或内查询
+
+外部的查询语句称为主查询或外查询
+
+按子查询的位置：
+
+select后：仅仅支持标量子查询，
+
+from后：支持表子查询，
+
+where或having后：支持标量子查询或者列子查询或者行子查询，
+
+exists后（相关子查询）：支持表子查询
+
+按子查询的功能：
+
+标量子查询/单行子查询（结果集只有一行一列）
+
+列子查询/多行子查询（结果集只有一列多行）
+
+行子查询（结果集只有一行多列）
+
+表子查询（结果集一般为多行多列）
+
+特点
+
+子查询放在小括号内
+
+子查询一般放在条件的右侧
+
+where或having后
+
+标量子查询，一般搭配着单行操作符使用（<,>,>=,<=,=,<>,<=>）
+
+```
+SELECT * 
+FROM employees
+WHERE salary >(
+SELECT salary
+FROM employees
+WHERE last_name='Abel'
+)
+```
+
+列子查询，一般搭配着多行操作符使用（in，any/some，all）
+
+```
+SELECT * 
+FROM employees
+WHERE salary in(
+select salary
+from employees
+WHERE manager_id=103
+)
+```
+
+行子查询（一般不用，限制比较多，符号必须一致，可以使用其他代替）
+
+```
+select * 
+FROM employees
+where (employee_id,salary)=(
+SELECT min(employee_id),max(salary)
+from employees
+)
+```
+
+select后(一般不用，使用外连接或者内连接可以做)
+
+```
+select d.*,(
+select count(*)
+from employees e
+where e.department_id=d.department_id
+)from departments d
+```
+
+from后
+
+将子查询作为表必须取个别名
+
+```
+select a.*,j.grade_level
+FROM(
+select avg(salary) ag,department_id
+from employees
+GROUP BY department_id
+) a join job_grades j
+on a.ag BETWEEN j.lowest_sal and j.highest_sal
+```
+
+exists后面
+
+查询结果为0表示没有查到数据，查询结果为1表示查到数据了
+
+```
+select EXISTS( select salary from employees where salary=300000)
+```
+
+```
+select department_name
+from departments d
+where EXISTS(
+select 1 
+from employees e
+where e.department_id=d.department_id
+)
+//可以使用in解决
+select department_name
+from departments d
+where department_id 
+IN(select department_id from employees)
+```
+
+### 分页查询
+
+语法
+
+select 查询列表
+
+from 表
+
+[join type] join 表2
+
+on 连接条件
+
+where 筛选条件
+
+group by 分组字段
+
+having 分组后的筛选
+
+order by 排序的字段】
+
+limit offset,size; 
+
+offset要显示条目的起始索引（起始索引从0开始）
+
+size要显示的条目个数
+
+特点：limit放在最后，执行顺序也在最后
+
+公式 limit (page-1)*size,size[page表示页码，size表示每页显示的条数]
+
+```
+select * from employees limit 0,10
 ```
 
 
