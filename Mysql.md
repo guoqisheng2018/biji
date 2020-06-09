@@ -121,7 +121,7 @@ update 表名 set 字段名=值 where +条件(不加where条件表示全改)
 delete from 表名 where +条件(不加where条件表示全删)
 ```
 
-## DQL语言（查询语句）
+## DQL语言（数据查询语言）
 
 ### 基础查询
 
@@ -884,11 +884,236 @@ size要显示的条目个数
 select * from employees limit 0,10
 ```
 
+### 联合查询
+
+union联合 合并：将多条查询语句的结果合并成一个结果
+
+应用场景：要查询的结果来自于多个表，且多个表没有直接的连接关系，但查询的信息一致
+
+特点：
+
+要求多条查询语句的查询列数是一致的
+
+要求多条查询语句的查询的每一列的类型和顺序最好一致
+
+只使用union关键字会去重，若不想去重使用union all
+
+```
+select * from employees where email like '%a%'
+UNION
+SELECT * from employees where department_id>90
+```
+
+## DML语言（数据操作语言）
+
+数据操作语言
+
+插入：insert
+
+语法一：
+
+```
+insert into 表名 (列名，……) values(值1，……)
+```
+
+列名可以打乱顺序，但是值的顺序要与列名顺序一致。
+
+列数与值的个数和类型必须匹配
+
+可以省略列名，默认为全部列，顺序按表中顺序，不填值的使用null。
+
+语法二
+
+```
+insert into 表名 set 列名1=值1,列名2=值2……
+```
+
+语法一支持一次性插入多行，语法二不支持
+
+```
+insert into 表名 values(值1,值2,……),(值1,值2,……)
+```
+
+语法一支持子查询，方式二不支持
+
+```
+insert into 表名(字段名1,字段名2,……)
+select 字段名 from 表名
+```
+
+修改：update
+
+修改单表语法：
+
+```
+update 表名 set 列名=新值,列名=新值 where 筛选条件
+```
+
+修改多表语法
+
+```
+update 表1 别名,表2 别名
+set 列名=值,……
+where 连接条件 and 筛选条件
+或者
+update 表1 别名 
+连接类型 join 表2 别名
+on 连接条件
+set 列名=值,……
+where 筛选条件
+```
+
+删除：delete/truncate
+
+语法一：delete
+
+删除单表的语法
+
+```
+delete from 表名 where 筛选条件
+```
+
+删除多表的语法
+
+```
+delete 表1的别名,表2的别名 
+from 表1 别名,表2 别名
+where 连接条件 and 筛选条件
+或者
+delete 表1的别名,表2的别名 
+from 表1 别名 
+连接类型 join 表2 别名
+on 连接条件
+where 筛选条件
+```
+
+语法二：
+
+truncate table 表名 
+
+truncate语法无法加where条件，一删即为全删
+
+区别：
+
+delete可以加where条件，truncate不能加
+
+truncate删除，效率高
+
+假如要删除的表中有自增长列，如果用delete删除后，再插入数据，自增长列的值从断点开始，而truncate删除后，再插入数据，自增长列的值从1开始
+
+truncate删除没有返回值，delete删除有返回值
+
+truncate删除不能回滚，delete删除可以回滚
+
+## DDL语言（数据定义语言）
+
+### 创建：create
+
+#### 库的创建
+
+```
+create database 数据库名
+create database if not exists 数据库名//容错性处理，如果库存在则不创建
+```
+
+#### 表的创建
+
+```
+create table 表名(
+列名 列的类型【（长度）约束】,
+列名 列的类型【（长度）约束】,
+……
+)
+```
+
+### 修改：alert
+
+#### 库更改字符集
+
+```
+alert database 数据库名 character set 字符集
+```
+
+#### 表的修改
+
+> ##### 修改列名
+
+```
+alter table 表名 change column 老列名 新列名 列的类型 //column可不加，一般都加，因为其他修改必须加
+```
+
+##### 修改列的类型或约束
+
+```
+alter table 表名 modify column 列名 列的类型
+```
+
+##### 添加新列
+
+```
+alert table 表名 add column 新列名 列的类型
+```
+
+##### 删除列
+
+```
+alert table 表名 drop column 列名
+```
+
+##### 修改表名
+
+```
+alert table 老表名 rename to 新表名
+```
+
+### 删除：drop
+
+#### 库的删除
+
+```
+drop database 库名
+drop database if exists 库名 //存在则删除
+```
+
+#### 表的删除
+
+```
+drop table 表名
+drop table if exists 表名 //存在则删除
+```
+
+### 表的复制
+
+#### 仅复制表结构
+
+```
+create table 复制后表的名字 like 复制来源表的名字
+```
+
+#### 复制表结构加数据
+
+```
+create table 复制后表的名字
+select * from 复制来源表的名字
+```
+
+#### 只复制部分数据
+
+```
+create table 复制后表的名字
+select 字段名，字段名 from 复制来源表的名字
+where 条件
+```
+
+#### 只复制部分结构没有数据
+
+```
+create table 复制后表的名字
+select 字段名，字段名 from 复制来源表的名字
+where 1=2//让条件不成立
+```
 
 
-## DML语言
-
-## DDL语言
 
 ## TCL语言
 
