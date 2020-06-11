@@ -1190,7 +1190,157 @@ timestamp受时区影响，例如东八区插入的时间在东九区读出来�
 
 ### 常见约束	
 
+#### 六大约束
 
+NOT NULL：非空，用于保证该字段的值不能为空
+
+DEFAULT：默认，用于保证该字段有默认值
+
+PRIMARY KEY：主键，用于保证该字段具有唯一性，并且非空
+
+UNIQUE：唯一，用于保证该字段具有唯一性，可以为空
+
+CHECK：检查，mysql不支持
+
+FOREIGN KEY：外键约束，用于限制两个表的关系，用于保证该字段的值必须来自于主表的关联列的值（从表添加外键约束，用于引用主表某列的值）
+
+约束分类：
+
+#### 列级约束
+
+六大约束语法上都支持，但是外键约束无效果
+
+直接在字段类型后加
+
+```
+create table 表名(
+				字段名 字段类型 约束类型，
+				字段名 字段类型
+)
+create table user(
+				id int PRIMARY KEY
+)
+```
+
+#### 表级约束
+
+除了非空和默认其他都支持
+
+```
+create table 表名(
+				字段名 字段类型，
+				字段名 字段类型，
+				[CONSTRAINT 约束名] 约束类型（字段名）//[]中的可以不写
+)
+create table user(
+				id int,
+				name VARCHAR(20) NOT NULL,
+				job_id int,
+				CONSTRAINT pk PRIMARY KEY(id),
+				CONSTRAINT fk_user_job FOREIGN KEY(job_id) REFERENCES job(id)//外键一般起名为fk_当前表名_主表名
+)
+```
+
+主键，外键，唯一键会自动生成索引
+
+#### 查询索引的方式
+
+```
+show index from 表名//non_uniue 为0代表唯一性
+```
+
+#### 主键和唯一的对比
+
+添加联合主键的方式
+
+```
+create table user(
+				id int,
+				name VARCHAR(20),
+				job_id int,
+				CONSTRAINT pk PRIMARY KEY(id,name),
+				CONSTRAINT fk_user_job FOREIGN KEY(job_id) REFERENCES job(id)
+)
+```
+
+|        | 保证唯一性 | 允许为空 | 一个表中可以有几个约束                                       |
+| ------ | ---------- | -------- | ------------------------------------------------------------ |
+| 主键   | 是         | 是       | 一个，但允许有联合主键（几个列拼接在一起的值为唯一就行，不再是单个列） |
+| 唯一键 | 是         | 是       | 可以有多个，允许有联合唯一键                                 |
+
+#### 外键
+
+要求在从表设置外键关系
+
+从表的外键列的类型和主表的关联列的类型要一致或者兼容
+
+主表的关联列必须是一个key（一般是主键或唯一键）
+
+插入数据时，先插入主表，再插入从表，删除数据时，先删除从表再删除主表
+
+#### 修改约束
+
+```
+列级约束
+alert table user modify column id int PRIMARY KEY；
+表级约束
+alert table user add [CONSTRAINT pk] PRIMARY KEY(id)//[]中的可以不写
+```
+
+#### 删除表级约束
+
+```
+删除主键
+alter table 表名 drop PRIMARY KEY
+删除唯一键
+alter table 表名 drop index 约束名
+删除外键
+alert table 表名 drop foreign key 约束名
+```
+
+注：约束名可通过查询索引的方式查到
+
+#### 标识列
+
+又称自增长列
+
+含义：可以不用手动的插入值，系统提供默认的序列值
+
+特点：
+
+1.标识列必须是在key后面（主键，唯一键，外键）
+
+2.一个表只能有一个标识列
+
+3.标识列的类型只能是数值型
+
+创建时
+
+```
+create table job_2(
+		id int PRIMARY KEY AUTO_INCREMENT,//自增长
+		name VARCHAR(20) NOT NULL
+)
+```
+
+查看步长和起始值
+
+```
+show variables like '%auto_increment%'
+```
+
+设置步长
+
+```
+set auto_increment_increment=3//步长
+auto_increment_offset并不是设置的起始值，若想设置起始值可以手动先插入一条带值的数据，后面再开始自增
+```
+
+修改时
+
+```
+alert table user modify column id PRIMARY KEY AUTO_INCREMENT
+```
 
 ## TCL语言
 
