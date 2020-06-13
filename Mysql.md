@@ -1342,5 +1342,597 @@ auto_increment_offset并不是设置的起始值，若想设置起始值可以�
 alert table user modify column id PRIMARY KEY AUTO_INCREMENT
 ```
 
-## TCL语言
+## TCL语言(事务控制语言)
+
+### 事务
+
+事务：一个或一组sql语句组成一个执行单元，这个执行单元要没全部执行，要么全部不执行
+
+#### 事务的ACID属性
+
+原子性（Atomicity）：一个事务不可再分割，要么都执行要么都不执行
+
+一致性（Consistency）：一个事务执行会使数据从一个一致状态切换到另一个一致状态
+
+隔离性（Isolation）：一个事务的执行不会受其他事务的干扰
+
+持久性（Durability）：一个事务一旦提交，则会永久的改变数据库的数据
+
+#### 事务的创建
+
+隐式事务：事务没有明确的开启和结束标记
+
+比如insert，update，delete语句
+
+显示事务：事务具有明确的开启和结束标记
+
+前提：必须先设置自动提交功能为禁用
+
+```
+查看自动提交
+show variables like 'autocommit'
+设置自动提交为关闭
+set autocommit=0
+```
+
+```
+步骤1:
+set autocommit=0
+start tranasction；//可写可不写，set autocommit=0已默认开启
+步骤2：编写事务中的sql语句
+语句1，
+语句2，
+……
+步骤3:结束事务
+commit；//提交事务
+rollback；//回滚
+```
+
+#### 事务并发
+
+对于同时运行的多个事务，当这些事务访问数据库中相同的数据时，如果没有采取必要的隔离机制，就会导致各种并发问题
+
+**脏读**（针对**更新数据**）：对于两个事务T1，T2，T1读取了已经被T2更新但还没有被提交的字段。之后，若T2回滚，T1读取的内容就是临时且无效的.
+**不可重复读**（**更新**的时候）：对于两个事务T1，T2，T1读取了一个字段，然后T2更新了该字段。之后，T1再次读取同一个字段，值就不同了.
+**幻读**（针对**插入数据**）：对于两个事务T1，T2，T1从一个表中读取了一个字段，然后T2在该表中插入了一些新的行.之后，如果T1再次读取同一个表，就会多出几行.
+
+#### 事务的隔离级别
+
+|                  | 脏读     | 不可重复读 | 幻读     |
+| ---------------- | -------- | ---------- | -------- |
+| read-uncommitted | 会出现   | 会出现     | 会出现   |
+| read-committed   | 不会出现 | 会出现     | 会出现   |
+| repeatable-read  | 不会出现 | 不会出现   | 会出现   |
+| serializable     | 不会出现 | 不会出现   | 不会出现 |
+
+serializable会增加类似锁的操作，影响效率
+
+mysql中默认第三个级别 repeatable-read
+
+oracle只有两个级别 （read committed，serializable）默认read-committed
+
+查看隔离级别
+
+```
+select @@transaction_isolation
+```
+
+设置隔离级别
+
+```
+set session transaction isolation level 隔离级别  //当前连接的隔离级别
+set global transaction isolation level 隔离级别  //数据库系统的全局的隔离级别
+```
+
+#### delete和truncate在事务使用时的区别
+
+对delete有效，对truncate无效
+
+#### 保存点
+
+savepoint
+
+```
+set autocommit=0;
+start tranasction;
+sql语句一;
+savepoint a;
+sql语句二;
+ROOLBACK to a;
+//执行结果sql语句一会被执行并保存，sql语句二不会被保存，会被回退
+```
+
+### 视图
+
+ 5.0.1版本开始提供的功能，是一种虚拟存在的表，只保存了sql逻辑
+
+#### 视图的好处
+
+重用sql语句
+
+简化复杂的sql操作，不必知道它的查询细节
+
+保护数据，提高安全性
+
+#### 视图的创建
+
+```
+create view 视图名
+as
+复杂的查询语句
+```
+
+#### 视图的修改
+
+```
+//方式一
+create or replace view 视图名
+as
+查询语句
+//方式二
+alert 视图名 
+as
+查询语句
+```
+
+#### 删除视图
+
+```
+drop view 视图名，视图名，……
+```
+
+#### 查看视图
+
+```
+desc 视图名
+show create view 视图名
+```
+
+#### 视图的更新
+
+插入
+
+```
+insert into 视图名 values()//与表一致，原始表会一并更改了
+```
+
+修改
+
+```
+uopdate 视图名 set 字段名=值//与表一致，原始表会一并更改了
+```
+
+删除
+
+```
+delete from 视图名 where 条件
+```
+
+若视图具有一下特征则不能更新
+
+包含以下关键字的sql语句，分组函数，distinct，group by，having，union或者union all
+
+常量视图
+
+select中包含子查询
+
+join
+
+from一个不能更新的视图
+
+where子句的子查询引用了from子句中的表
+用户不具备修改视图的权限
+
+### 变量
+
+#### 系统变量
+
+变量由系统提供，不是用户定义的，属于服务器层面
+
+使用的语法
+
+查看所有的系统变量
+
+```
+show global variables//全局变量
+show [session] variables//会话变量
+```
+
+查看满足条件的部分系统变量
+
+```
+show global｜[session] variables like ‘%%’
+```
+
+查看指定的某个系统变量的值
+
+```
+select @@global.｜[session.]系统变量名
+```
+
+为某个系统变量赋值
+
+```
+set global｜[session] 系统变量名=值
+set @@global.｜[session.]系统变量名=值
+```
+
+##### 全局变量
+
+作用域：服务器每次启动将为所有的全局变量赋于初始值，针对于所有的会话（连接）有效，但不能跨重启
+
+##### 会话变量
+
+作用域：仅仅针对于当前的会话（连接）有效
+
+#### 自定义变量
+
+##### 用户变量
+
+作用域：针对于当前会话（连接）有效，同于会话变量的作用域
+
+应用在任何地方，也就是begin end里面或begin end外面
+
+变量时用户自定义的，不是由系统提供的
+
+赋值的操作符： =或：=
+
+1.声明并初始化
+
+```
+set @用户变量名=值；或
+set @用户变量名 ：=值；或
+select @用户变量名 ：=值；
+```
+
+2.赋值
+
+```
+方式一：通过set或select
+set @用户变量名=值；或
+set @用户变量名 ：=值；或
+select @用户变量名 ：=值；
+方式二：通过SELECT INTO
+select 字段 into 变量名
+from 表；
+select count(1) INTO @count
+FROM employees
+```
+
+3.使用（查看用户变量的值）
+
+```
+select @用户变量名
+```
+
+##### 局部变量
+
+作用域：仅仅在定义它的begin end中有效
+
+应用在begin and中的第一句话
+
+1.声明
+
+```
+DELARE 变量名 类型；
+DELARE 变量名 类型 DEFAULT 值；
+```
+
+2.赋值
+
+```
+方式一：通过set或select
+set 局部变量名=值；或
+set 局部变量名 ：=值；或
+select @局部变量名 ：=值；
+方式二：通过SELECT INTO
+select 字段 into 局部变量名
+from 表；
+```
+
+3.使用
+
+```
+select 局部变量名
+```
+
+##### 对比用户变量和局部变量
+
+|          | 作用域          | 定义和使用的位置              | 语法                          |
+| -------- | --------------- | ----------------------------- | ----------------------------- |
+| 用户变量 | 当前会话        | 会话中的任何地方              | 需要加上@符号，不用限定类型   |
+| 局部变量 | begin and重化工 | 只能在begin end中，且为第一句 | 一般不用加@符号，需要限定类型 |
+
+### 存储过程
+
+好处
+
+1.提高代码的重用性
+
+2.简化操作
+
+3.减少了编译次数并且减少了和数据库的连接次数，提高了效率
+
+含义：一组预先编译好的sql语句的集合，理解成批处理语句
+
+#### 参数模式
+
+IN：该参数可以作为输入，也就是该参数需要调用方传入值
+
+OUT：该参数可以作为输出，也就是该参数可以作为返回值
+
+INOUT：该参数既可以作为输入又可以作为输出，也就是该参数需要传入值，又可以返回值
+
+#### 创建语法
+
+```
+create procedure 存储过程名（参数列表）
+Begin
+存储过程体（一组合法的sql语句）
+end
+```
+
+注意⚠️：参数列表包含三部分
+
+参数模式，参数名，参数类型
+
+举例 IN stunma varchar（20）
+
+如果存储过程体仅有一句话，begin end可以省略
+
+**存储过程体中每条sql语句的结尾要求必须加分号**
+
+**存储过程的结尾可以使用DELIMITER重新设置**
+
+**语法**
+
+**DELIMITER 结束标记**
+
+```
+无参
+DELIMITER $
+CREATE procedure myp1()
+BEGIN
+INSERT INTO admin(username,`password`)
+VALUES('jaoh1','000000'),('jaoh2','000000'),('jaoh3','000000'),('jaoh4','000000'),('jaoh5','000000');
+END $
+带in和out模式
+DELIMITER $
+create PROCEDURE myp2(IN beautyName VARCHAR(20),OUT boyName VARCHAR(20),OUT userCP INT)
+BEGIN
+SELECT bo.boyName,bo.userCP INTO boyName,userCP
+FROM boys bo
+RIGHT JOIN beauty b ON bo.id=b.boyfriend_id
+where b.name=beautyName;
+END $
+```
+
+#### 调用语法
+
+```
+CALL 存储过程名（实参列表）
+
+call myp2('name',@bname,@userCP)//声明一个用户变量接受out返回的参数值
+```
+
+#### 删除存储过程
+
+```
+drop procedure 存储过程名
+```
+
+#### 查看存储过程的信息
+
+```
+show create procedure 存储过程名
+```
+
+### 函数
+
+好处
+
+1.提高代码的重用性
+
+2.简化操作
+
+3.减少了编译次数并且减少了和数据库的连接次数，提高了效率
+
+含义：一组预先编译好的sql语句的集合，理解成批处理语句
+
+#### 和存储过程的区别
+
+存储过程：可以有0个返回，也可以有多个返回，适合做批量插入，批量更新
+
+函数：有且只有一个返回，适合做处理数据后返回一个结果
+
+#### 创建语法
+
+```
+create function 函数名（参数列表）returns 返回类型
+Begin
+函数体
+end
+
+函数体当中需要声明一个自定义变量，接受返回值，并且用return返回
+```
+
+参数列表包含两部分
+
+参数名 参数类型
+
+函数体肯定会有return语句，如果没有会报错
+
+如果函数体仅有一句话，begin end可以省略
+
+使用DELIMITER设置结束标记
+
+#### 调用语法
+
+```
+select 函数名（参数列表）
+```
+
+#### 查看函数的信息
+
+```
+show create function 函数名
+```
+
+#### 删除函数
+
+```
+drop function 函数名
+```
+
+### 流程控制结构
+
+顺序结构：程序从上往下依次执行
+
+分支结构：程序从两条或多条路径中选择一条去执行
+
+循环结构：程序在满足一定条件的基础上，重复执行一段代码
+
+#### 分支结构
+
+1.if函数
+
+功能：实现简单的双分支
+
+语法：
+
+```
+if(表达式1,表达式2,表达式3)
+```
+
+执行顺序
+
+如果表达式1成立，则if函数返回表达式2的值，否则返回表达式3的值
+
+应用在任何地方
+
+2.case结构
+
+情况1：类似于java中的switch语句，一般用于实现等值判断
+语法：
+
+```
+CASE 变量|表达式|字段
+WHEN 要判断的值 THEN 返回的值1
+WHEN 要判断的值 THEN 返回的值2
+……
+ELSE 要返回的值n
+END
+```
+
+```
+CASE 变量|表达式|字段
+WHEN 要判断的值 THEN 返回的语句1;
+WHEN 要判断的值 THEN 返回的语句2;
+……
+ELSE 要返回的语句n;
+END CASE
+```
+
+情况2：类似于java中的多重IF语句，一般用于实现区间判断
+语法：
+
+```
+CASE
+WHEN 要判断的条件1 THEN 返回的值1
+WHEN 要判断的条件2 THEN 返回的值2
+……
+ELSE 要返回的值n
+END
+```
+
+```
+CASE
+WHEN 要判断的条件1 THEN 返回的语句1;
+WHEN 要判断的条件2 THEN 返回的语句2;
+……
+ELSE 要返回的语句n;
+END CASE
+```
+
+特点：
+
+1.可以作为表达式，嵌套在其他语句中使用，可以放在任何地方，BEGIN END中或BEGIN END外
+
+2.可以作为独立的语句去使用，只能放在BEGIN END中使用
+
+3.如果WHEN中的值满足或条件成立，则执行对应的THEN后面的语句，并且结束CASE如果都不满足，则执行ELSE中的语句或值
+4.ELSE可以省略，如果ELSE省略了，并且所有WHEN条件都不满足，则返回NULL
+
+3.if结构
+
+功能：实现多重分支
+语法：
+
+```
+if 条件1 then 语句1;
+elseif 条件2 then 语句2；
+[else 语句n;]
+end if;
+```
+
+应用在begin end中
+
+### 循环结构
+
+分类：
+while、loop、repeat
+循环控制：
+iterate类似于 continue，继续，结束本次循环，继续下一次
+leave 类似于 break，跳出，结束当前所在的循环
+
+应用在begin end中
+
+#### while
+
+语法
+
+```
+[标签：] while 循环条件 do
+循环体；
+end while [标签];
+```
+
+#### loop
+
+语法
+
+```
+[标签：] loop
+循环体；
+end loop [标签]；
+```
+
+可以用来模拟简单的死循环
+
+#### repeat
+
+语法
+
+```
+[标签：] repeat
+循环体；
+until 结束循环的条件
+end repeat [标签]；
+```
+
+例子
+
+```
+DELIMITER $
+CREATE PROCEDURE test_whilel(IN insertCount INT)
+BEGIN
+DECLARE i INT DEFAULT 1;
+a:WHILE i<=insertCount DO
+INSERT INTO admin(username,`password`) VALUES (CONCAT ('xiaohua', i),'0000');
+IF i>=20 THEN LEAVE a;
+END IF;
+SET i=i+1;
+END WHILE a;
+END $
+```
 
