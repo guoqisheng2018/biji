@@ -395,13 +395,13 @@ luoqingshang.hello.suffix=SUFFIX
 
 ### 原理：
 
-1自动配置类；CacheAutoConfiguration
+1.自动配置类；CacheAutoConfiguration
 
-2SimpleCacheConfiguration配置类默认生效
+2.SimpleCacheConfiguration配置类默认生效
 
-3给容器中注册了一个CacheManager：ConcurrentMapCacheManager
+3.给容器中注册了一个CacheManager：ConcurrentMapCacheManager
 
-4可以获取和创建ConcurrentMapCache类型的缓存组件，他的作用将数据保存在ConcurrentMap中
+4.可以获取和创建ConcurrentMapCache类型的缓存组件，他的作用将数据保存在ConcurrentMap中
 
 运行流程
 
@@ -491,8 +491,6 @@ public class MyCacheConfig {
 @Cacheable(cacheNames = {"emp","temp"},keyGenerator = "myKeyGenerator",condition = "#id>0",unless = "#result==null")
 ```
 
-
-
 ```java
  @CachePut
 //既调用方法，又更新缓存数据
@@ -522,7 +520,7 @@ public class MyCacheConfig {
 
 ```java
 @CacheConfig
-//抽取缓存公共的配置
+//抽取缓存公共的配置，直接放在类上面
 ```
 
 ### 注意
@@ -553,19 +551,101 @@ docker pull registry.docker-cn.com/library/
 docker -d -p 6379:6379 --name myredis + 镜像名
 ```
 
-spring-boot-starter-data-redis
+redis常见操作的五大类型
 
-配置redis
+String(字符串),list(列表),set(集合),hash(散列),zset(有序集合)
+
+### 引入maven配置文件
+
+```
+<dependency>
+		<groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+### 配置redis
 
 ```properties
 spring.redis.host=xxxxx
 ```
 
 ```java
-StringRedisTemplate//操作字符串的
-RedisTemplate//操作对象的
+StringRedisTemplate//操作字符串的，k-v都是字符串的
+RedisTemplate//操作对象的,k-v都是对象的
 ```
 
-redis常见操作的五大类型
+```
+stringRedisTemplate.opsForValue()//操作字符串
+stringRedisTemplate.opsForList();//操作数组
+stringRedisTemplate.opsForSet();//操作集合
+stringRedisTemplate.opsForHash();//操作散列
+stringRedisTemplate.opsForZSet();//操作有序集合
 
-String(字符串),list(列表),set(集合),hash(散列),zset(有序集合)
+```
+
+如果要存储对象，要先将对象序列化（实现序列化接口），RedisTemplate默认使用jdk序列化机制，将序列化后的数据再保存到redis中
+
+如果想将数据以json字符串的方式保存
+
+1.自己将对象转为json
+
+2.编写配置文件改变序列化规则（springboot1.x）
+
+```
+package com.example.web.config;
+
+
+import com.example.web.entity.Dog;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+
+
+import java.net.UnknownHostException;
+
+@Configuration
+public class MyRedisConfig {
+
+    @Bean
+    public RedisTemplate<Object, Dog> dogRedisTemplate(RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+        RedisTemplate<Object, Dog> template = new RedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory);
+        Jackson2JsonRedisSerializer<Dog> ser = new Jackson2JsonRedisSerializer<Dog>(Dog.class);
+        template.setDefaultSerializer(ser);//设置默认的序列化器
+        return template;
+    }
+
+
+}
+
+```
+
+### 使用
+
+**注意⚠️：一旦引入redis的starter后springboot容器中会使用RedisCacheManager创建RedisCache作为缓存组件，一旦有了缓存组件SimpleCacheConfiguration便不会再创建缓存组件，RedisCache通过操作redis缓存数据
+
+1.先引入redis的start，容器中保存的是RedisCacheManager（CacheManager的实现）
+
+2.RedisCacheManager帮我们自动创建RedisCache来作为缓存组件，RedisCache通过操作redis缓存数据
+
+3.默认保存数据k-v都是object，利用序列化保存
+
+4.自定义CacheManager(springboot2.x版本)
+
+```
+ @Bean
+    public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
+        RedisCacheConfiguration cacheConfiguration =
+                RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofDays(1))   // 设置缓存过期时间为一天
+                        .disableCachingNullValues()     // 禁用缓存空值，不缓存null校验
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
+                                new GenericJackson2JsonRedisSerializer()));     // 设置CacheManager的值序列化方式为json序列化，可加入@Class属性
+        return RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(cacheConfiguration).build();     // 设置默认的cache组件
+    }
+```
+
+## RabbitMq
