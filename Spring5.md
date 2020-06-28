@@ -390,7 +390,171 @@ public void test8(){
 
 5.当容器关闭时候，调用bean的销毁方法（需要进行配置销毁的方法）
 
+```java
+package com.luoqingshang.spring5.bean;
+
+public class Orders {
+
+    private String oname;
+
+    public Orders() {
+        System.out.println("1.通过无参构造器创建bean实例");
+    }
+
+    public String getOname() {
+        return oname;
+    }
+
+    public void setOname(String oname) {
+        this.oname = oname;
+        System.out.println("2.为bean的属性设置值和对其他bean引用");
+    }
+
+    private void init(){
+        System.out.println("3.调用bean的初始化的方法");
+    }
+
+    private void destroy(){
+        System.out.println("5.当容器关闭时候，调用bean的销毁方法");
+    }
+
+
+}
+
+```
+
+```xml
+<bean id="orders" class="com.luoqingshang.spring5.bean.Orders" init-method="init" destroy-method="destroy">
+    <property name="oname" value="lll"></property>
+</bean>
+```
+
+```java
+@Test
+public void test9(){
+    ApplicationContext context=new ClassPathXmlApplicationContext("bean8.xml");
+    Orders orders = context.getBean("orders", Orders.class);
+    System.out.println("4.bean可以使用");
+    ((ClassPathXmlApplicationContext) context).close();
+}
+```
+
+加上bean的后置处理器，有七步
+
+1.通过构造器创建bean实例（无参构造）
+
+2.为bean的属性设置值和对其他bean引用（调用set方法）
+
+3.把bean实例传递给bean的后置处理器的方法
+
+4.调用bean的初始化的方法（需要进行配置初始化的方法）
+
+5.把bean实例传递给bean的后置处理器的方法
+
+6.bean可以使用（bean对象获取到了）
+
+7.当容器关闭时候，调用bean的销毁方法（需要进行配置销毁的方法）
+
+后置处理器
+
+```java
+package com.luoqingshang.spring5.bean;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+
+public class MyBeanPost implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println("初始化之前执行的postProcessBeforeInitialization");
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println("初始化之后执行的postProcessAfterInitialization");
+        return bean;
+    }
+}
+```
+
+配置后置处理器
+
+```xml
+<bean id="myBeanPost" class="com.luoqingshang.spring5.bean.MyBeanPost"></bean>
+//会为所有当前xml的bean添加后置处理器
+```
+
+#### bean的自动装配
+
+使用property为手动装配
+
+根据指定装配规则（属性名称或者属性类型），Spring自动将匹配的属性值进行注入
+
+根据装配规则——属性名称
+
+注入bean的id值必须与类属性名称一致
+
+```xml
+<bean id="emp" class="com.luoqingshang.spring5.autowire.Emp" autowire="byName"></bean>
+
+<bean id="dept" class="com.luoqingshang.spring5.autowire.Dept"></bean>
+```
+
+根据装配规则——属性类型
+
+不可以同时有多个一样的类型
+
+```xml
+<bean id="emp" class="com.luoqingshang.spring5.autowire.Emp" autowire="byType"></bean>
+
+<bean id="dept" class="com.luoqingshang.spring5.autowire.Dept"></bean>
+
+<!--<bean id="dept1" class="com.luoqingshang.spring5.autowire.Dept"></bean>-->
+```
+
+#### 引入外部文件
+
+1先引入context空间
+
+2用context标签将需要引入的文件加载进来
+
+3用${}引用文件中的值
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <bean id="druid" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${prop.driverClassName}"></property>
+        <property name="url" value="${prop.url}"></property>
+        <property name="username" value="${prop.username}"></property>
+        <property name="password" value="${prop.password}"></property>
+    </bean>
+
+</beans>
+```
+
 ### 2.基于注解方式实现
 
+第一步，多引入一个aop依赖
 
+第二步，开启组件扫描
 
+如果有多个包，就用,隔开或者扫描上层目录
+
+```xml
+<context:component-scan base-package="com.luoqingshang.spring5"/>
+<!--<context:component-scan base-package="com.luoqingshang.spring5.dao,com.luoqingshang.spring5.service"/>-->
+```
+
+第三步，使用注解
+
+注意⚠️：注解里的value值可以省略不写，默认值是类名称的首字母小写
