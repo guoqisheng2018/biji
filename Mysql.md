@@ -688,6 +688,15 @@ on 连接条件
 
 where 筛选条件
 
+```
+select a.字段,a.字段,b.字段,b.字段,c.字段,c.字段
+from p_payment_method a
+join p_payment_order b on a.pay_order_no =b.pay_order_no 
+join p_trans_order c on b.rans_order_no=c.rans_order_no
+```
+
+
+
 ##### 非等值连接
 
 ```
