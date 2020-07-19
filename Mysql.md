@@ -695,8 +695,6 @@ join p_payment_order b on a.pay_order_no =b.pay_order_no
 join p_trans_order c on b.rans_order_no=c.rans_order_no
 ```
 
-
-
 ##### 非等值连接
 
 ```
