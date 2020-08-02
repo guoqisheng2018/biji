@@ -94,9 +94,19 @@ git pull origin master --allow-unrelated-histories
 再次推送至远程仓库
 ```
 
+## 复刻使用方法
+
+[复刻使用方法](https://docs.github.com/cn/github/collaborating-with-issues-and-pull-requests/working-with-forks)
+
+```
+git remote -v
+http://122.152.201.59/guoqisheng/century21-server.git
+git checkout master
+git merge upstream/master
+git pull http://122.152.201.59/century21/century21-server.git
 
 
 
 
-
+```
 

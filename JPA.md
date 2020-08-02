@@ -1163,6 +1163,7 @@ public void testSpec() {
              * 第二个参数：当前需要比较的取值
              */
             Predicate predicate = cb.equal(custName, "客户名称1");//进行精准的匹配  （比较的属性，比较的属性的取值）
+            predicate=cb.and(cb.equal(custName, "客户名称1"));//再次追加
             return predicate;
         }
     };
